@@ -53,7 +53,7 @@ class StructureListener implements ODDLListener<List<Structure>> {
 You would use the `StructureListener` like this:
 ```java
 try (InputStream in = Files.newInputStream(Paths.get("myfile.oddl"))) {
-    List<Structure> structures = new ODDLListener(in).read(new StructureListener());
+    List<Structure> structures = new ODDLReader(in).read(new StructureListener());
     // operate on your list of Structures...
 }
 ```
