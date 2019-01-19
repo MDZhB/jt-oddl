@@ -3,6 +3,15 @@
 `jt-oddl` is an [Open Data Description Language](http://www.openddl.org/) parser written in Java.
 
 ## Getting started
+### Maven
+Add the following to the `<dependencies>` element in your `pom.xml`:
+```xml
+<dependency>
+  <groupId>com.github.mdzhb</groupId>
+  <artifactId>jt-oddl</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
 ### In Code
 To parse an OpenDDL file, you need an `ODDLReader` and an implementation of the `ODDLListener` interface. The `ODDLReader` parses text read from a `Reader` or `InputStream`. Every time the `ODDLReader` encounters a valid language construct in the input, it calls the appropriate method in its `ODDLListener`.
 
