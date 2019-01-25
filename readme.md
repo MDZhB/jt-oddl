@@ -1,4 +1,6 @@
 # jt-oddl
+[![Javadocs](https://www.javadoc.io/badge/com.github.mdzhb/jt-oddl.svg)](https://www.javadoc.io/doc/com.github.mdzhb/jt-oddl)
+
 ## Overview
 `jt-oddl` is an [Open Data Description Language](http://www.openddl.org/) parser written in Java.
 
