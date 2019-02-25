@@ -60,20 +60,20 @@ public class ODDLReader {
      * @param listener  an object to which the reader will pass all parsed language constructs
      * @param <T>       the type of the result produced by the listener
      *
-     * @return the object returned by <tt>listener</tt>'s {@link ODDLListener#end()} method.
+     * @return the object returned by <tt>listener</tt>'s {@link ODDLListener#end(Position)} method.
      *
      * @throws IOException         when an IO exception occurs
      * @throws ODDLParseException  when the text read from the input stream does not conform to the OpenDDL grammar
      */
-    public <T> T read(ODDLListener<T> listener) throws IOException, ODDLParseException {
+    public <T> T read(ODDLListener<T> listener) throws IOException, ODDLParseException, ODDLFormatException {
         listener.begin();
         while (tokenizer.peek(0) != DelimiterToken.EOF) {
             tryReadStructure(listener, false);
         }
-        return listener.end();
+        return listener.end(new Position(tokenizer.getLine(0), tokenizer.getCol(0)));
     }
 
-    private void tryReadStructure(ODDLListener<?> listener, boolean nested) throws IOException, ODDLParseException {
+    private void tryReadStructure(ODDLListener<?> listener, boolean nested) throws IOException, ODDLParseException, ODDLFormatException {
         ODDLToken token = tokenizer.peek(0);
 
         switch (token.getType()) {
@@ -98,7 +98,7 @@ public class ODDLReader {
         }
     }
 
-    private void readListStructure(ODDLListener<?> listener) throws IOException, ODDLParseException {
+    private void readListStructure(ODDLListener<?> listener) throws IOException, ODDLParseException, ODDLFormatException {
         final DataTypeToken dataType = tokenizer.read(DataTypeToken.class);
 
         // this is a data-array-list iff a subarray size is specified
@@ -136,7 +136,7 @@ public class ODDLReader {
         tokenizer.read(DelimiterToken.RBRACE);
     }
 
-    private void readCustomStructure(ODDLListener<?> listener) throws IOException, ODDLParseException {
+    private void readCustomStructure(ODDLListener<?> listener) throws IOException, ODDLParseException, ODDLFormatException {
         final IdentifierToken identifier = tokenizer.read(IdentifierToken.class);
 
         // the name is optional
@@ -202,8 +202,8 @@ public class ODDLReader {
         listener.endCustomStructure(identifier, name, properties);
     }
 
-    private void readDataList(DataTypeToken dataType, final int subarraySize, ODDLListener<?> listener) throws IOException, ODDLParseException {
-        final Class<? extends ODDLToken> type = dataType.getTokenType();
+    private void readDataList(DataTypeToken dataType, final int subarraySize, ODDLListener<?> listener) throws IOException, ODDLParseException, ODDLFormatException {
+        final Class<? extends ODDLToken> type = dataType.getValue().getTokenType();
 
         // skip list if empty
         if (tokenizer.peek(0) == DelimiterToken.RBRACE) {
@@ -261,7 +261,12 @@ public class ODDLReader {
         }
     }
 
-    private void readDataArrayList(DataTypeToken dataType, final int subarraySize, ODDLListener<?> listener) throws IOException, ODDLParseException {
+    private void readDataArrayList(DataTypeToken dataType, final int subarraySize, ODDLListener<?> listener) throws IOException, ODDLParseException, ODDLFormatException {
+        // skip list if empty
+        if (tokenizer.peek(0) == DelimiterToken.RBRACE) {
+            return;
+        }
+
         do {
             tokenizer.read(DelimiterToken.LBRACE);
             listener.beginSubArray(dataType, subarraySize);

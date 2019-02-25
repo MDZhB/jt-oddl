@@ -26,8 +26,6 @@
 
 package com.jiggawatt.jt.oddl;
 
-import java.util.Map;
-
 /**
  * An interface for classes that consume OpenDDL constructs identified by an {@link ODDLReader}. Instead of generating a
  * data structure to represent the fully parsed file, the reader calls the appropriate listener methods as it parses its
@@ -39,65 +37,86 @@ public interface ODDLListener<T> {
 
     /**
      * Called by the owning {@link ODDLReader} at the beginning of the document.
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void begin();
+    void begin() throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} at the end of the document.
+     * @param pos  the position in the file at which EOF was reached
      * @return a result that will be returned by {@link ODDLReader#read(ODDLListener)}
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    T end();
+    T end(Position pos) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters a boolean literal within a list structure.
      * @param value a boolean literal parsed by the reader
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void value(BoolToken value);
+    void value(BoolToken value) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters an integer literal within a list structure.
      * @param value an integer literal parsed by the reader
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void value(IntToken value);
+    void value(IntToken value) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters a float literal within a list structure.
      * @param value a float literal parsed by the reader
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void value(FloatToken value);
+    void value(FloatToken value) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters one or more consecutive string literals within a list
      * structure.
      * @param value a (possibly concatenated) string parsed by the reader
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void value(StringToken value);
+    void value(StringToken value) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters a reference within a list structure.
      * @param value a reference parsed by the reader
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void value(RefToken value);
+    void value(RefToken value) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters a data type keyword within a list structure.
      * @param value a data type parsed by the reader
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void value(DataTypeToken value);
+    void value(DataTypeToken value) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters the beginning of a data list structure.
      * @param dataType the type of the elements stored in this list
      * @param name     the name specified for this list; <tt>null</tt> if none
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void beginListStructure(DataTypeToken dataType, NameToken name);
+    void beginListStructure(DataTypeToken dataType, NameToken name) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters the end of a data list structure.
      * @param dataType the type of the elements stored in this list
      * @param name     the name specified for this list; <tt>null</tt> if none
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void endListStructure(DataTypeToken dataType, NameToken name);
+    void endListStructure(DataTypeToken dataType, NameToken name) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters the beginning of a data array list structure.
@@ -105,8 +124,10 @@ public interface ODDLListener<T> {
      * @param subarraySize  the number of elements in this list's sub-arrays
      * @param name          an optional name by which other structures can refer to this one, or <tt>null</tt> if none
      *                      was specified
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void beginArrayListStructure(DataTypeToken dataType, int subarraySize, NameToken name);
+    void beginArrayListStructure(DataTypeToken dataType, int subarraySize, NameToken name) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters the end of a data array list structure.
@@ -114,22 +135,28 @@ public interface ODDLListener<T> {
      * @param subarraySize  the number of elements in this list's sub-arrays
      * @param name          an optional name by which other structures can refer to this one, or <tt>null</tt> if none
      *                      was specified
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void endArrayListStructure(DataTypeToken dataType, int subarraySize, NameToken name);
+    void endArrayListStructure(DataTypeToken dataType, int subarraySize, NameToken name) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters the beginning of an array list structure's sub-array.
      * @param dataType      the type of the elements stored in this sub-array
      * @param subarraySize  the number of elements in this sub-array
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void beginSubArray(DataTypeToken dataType, int subarraySize);
+    void beginSubArray(DataTypeToken dataType, int subarraySize) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters the end of an array list structure's sub-array.
      * @param dataType      the type of the elements stored in this sub-array
      * @param subarraySize  the number of elements in this sub-array
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void endSubArray(DataTypeToken dataType, int subarraySize);
+    void endSubArray(DataTypeToken dataType, int subarraySize) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encoutners the beginning of a custom data structure.
@@ -137,8 +164,10 @@ public interface ODDLListener<T> {
      * @param name        an optional name by which other structures can refer to this one, or <tt>null</tt> if none was
      *                    specified
      * @param properties  the contents of the structure's property list
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void beginCustomStructure(IdentifierToken identifier, NameToken name, PropertyMap properties);
+    void beginCustomStructure(IdentifierToken identifier, NameToken name, PropertyMap properties) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encoutners the end of a custom data structure.
@@ -146,6 +175,8 @@ public interface ODDLListener<T> {
      * @param name        an optional name by which other structures can refer to this one, or <tt>null</tt> if none was
      *                    specified
      * @param properties  the contents of the structure's property list
+     * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
+     * listener
      */
-    void endCustomStructure(IdentifierToken identifier, NameToken name, PropertyMap properties);
+    void endCustomStructure(IdentifierToken identifier, NameToken name, PropertyMap properties) throws ODDLFormatException;
 }
