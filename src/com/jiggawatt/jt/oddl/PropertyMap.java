@@ -53,7 +53,7 @@ public final class PropertyMap implements Iterable<PropertyMap.Entry> {
     /**
      * @return an empty property map
      */
-    static PropertyMap empty() {
+    public static PropertyMap empty() {
         return EMPTY_MAP;
     }
 

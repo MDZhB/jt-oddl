@@ -2,7 +2,7 @@ package com.jiggawatt.jt.oddl;
 
 public enum DataType {
 
-    INT(IntToken.class),
+    INT    (IntToken.class),
     FLOAT  (FloatToken.class),
     BOOL   (BoolToken.class),
     STRING (StringToken.class),
