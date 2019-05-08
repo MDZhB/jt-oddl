@@ -58,18 +58,20 @@ public final class PropertyMap implements Iterable<PropertyMap.Entry> {
     }
 
     public static class Entry {
-        private final Map.Entry<String, PropertyValueToken> wrap;
+        private final String key;
+        private final PropertyValueToken value;
 
         private Entry(Map.Entry<String, PropertyValueToken> w) {
-            wrap = w;
+            key = w.getKey();
+            value = w.getValue();
         }
 
         public String getKey() {
-            return wrap.getKey();
+            return key;
         }
 
         public PropertyValueToken getValue() {
-            return wrap.getValue();
+            return value;
         }
     }
 
