@@ -47,7 +47,7 @@ class StructureListener implements ODDLListener<List<Structure>> {
     
     // this method is called when the reader reaches end of file
     @Override
-    public List<Structure> end() {
+    public List<Structure> end(int row, int col) {
         return structures; // this return value is the object returned by ODDLReader.read()
     }
 }
