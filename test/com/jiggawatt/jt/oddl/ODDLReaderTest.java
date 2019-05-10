@@ -265,7 +265,7 @@ public class ODDLReaderTest {
         }
 
         @Override
-        public List<Structure> end(Position pos) {
+        public List<Structure> end(int row, int col) {
             return structures;
         }
 

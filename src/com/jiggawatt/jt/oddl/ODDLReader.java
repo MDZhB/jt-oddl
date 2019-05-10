@@ -60,7 +60,7 @@ public class ODDLReader {
      * @param listener  an object to which the reader will pass all parsed language constructs
      * @param <T>       the type of the result produced by the listener
      *
-     * @return the object returned by <tt>listener</tt>'s {@link ODDLListener#end(Position)} method.
+     * @return the object returned by <tt>listener</tt>'s {@link ODDLListener#end(int,int)} method.
      *
      * @throws IOException         when an IO exception occurs
      * @throws ODDLParseException  when the text read from the input stream does not conform to the OpenDDL grammar
@@ -70,7 +70,7 @@ public class ODDLReader {
         while (!tokenizer.peek(0).isEOF()) {
             tryReadStructure(listener, false);
         }
-        return listener.end(new Position(tokenizer.getLine(0), tokenizer.getCol(0)));
+        return listener.end(tokenizer.peek(0).getRow(), tokenizer.peek(0).getCol());
     }
 
     private void tryReadStructure(ODDLListener<?> listener, boolean nested) throws IOException, ODDLParseException, ODDLFormatException {
@@ -90,7 +90,6 @@ public class ODDLReader {
             default:
                 if (!nested || !token.isDelimiter('}')) {
                     throw new UnexpectedTokenException(
-                            tokenizer.getLine(0), tokenizer.getCol(0),
                             token,
                             IdentifierToken.class, DataTypeToken.class
                     );
@@ -210,9 +209,6 @@ public class ODDLReader {
             return;
         }
 
-        int line = tokenizer.getLine(0);
-        int row  = tokenizer.getCol(0);
-
         int count = 0;
 
         if (type == FloatToken.class) {
@@ -257,7 +253,7 @@ public class ODDLReader {
 
         // enforce subarray size; unbounded if < 0
         if (subarraySize>=0 && count!=subarraySize) {
-            throw new IllegalSubarraySizeException(line, row, count, subarraySize);
+            throw new IllegalSubarraySizeException(dataType.getRow(), dataType.getCol(), count, subarraySize);
         }
     }
 
@@ -280,7 +276,7 @@ public class ODDLReader {
 
     private <T extends ODDLToken> T readListElement(Class<T> type) throws IOException, ODDLParseException {
         if (tokenizer.peek(0).getClass()!=type) {
-            throw new ListElementTypeMismatchException(tokenizer.getLine(0), tokenizer.getCol(0), tokenizer.peek(0), type);
+            throw new ListElementTypeMismatchException(tokenizer.peek(0), type);
         }
 
         return type.cast(tokenizer.read());
@@ -288,12 +284,12 @@ public class ODDLReader {
 
     private FloatToken readFloatListElement() throws IOException, ODDLParseException {
         if (!tokenizer.peek(0).isFloat() && !tokenizer.peek(0).isInt()) {
-            throw new ListElementTypeMismatchException(tokenizer.getLine(0), tokenizer.getCol(0), tokenizer.peek(0), FloatToken.class);
+            throw new ListElementTypeMismatchException(tokenizer.peek(0), FloatToken.class);
         }
 
         ODDLToken token = tokenizer.read();
         if (token.isInt()) {
-            return new FloatToken(token.getText(), token.asInt().getValue());
+            return new FloatToken(token.getRow(), token.getCol(), token.getText(), token.asInt().getValue());
         } else {
             return token.asFloat();
         }
@@ -301,12 +297,12 @@ public class ODDLReader {
 
     private RefToken readRef(boolean list) throws IOException, ODDLParseException {
         if (list && !tokenizer.peek(0).isName()) {
-            throw new ListElementTypeMismatchException(tokenizer.getLine(0), tokenizer.getCol(0), tokenizer.peek(0), NameToken.class);
+            throw new ListElementTypeMismatchException(tokenizer.peek(0), NameToken.class);
         }
 
-        if (tokenizer.peek(0) == NameToken.NULL) {
-            tokenizer.read();
-            return new RefToken();
+        if (tokenizer.peek(0).isNullName()) {
+            ODDLToken name = tokenizer.read();
+            return new RefToken(name.getRow(), name.getCol());
         } else {
             List<NameToken> names = new ArrayList<>();
             names.add(tokenizer.read(NameToken.class));
@@ -316,8 +312,8 @@ public class ODDLReader {
                 // only the first name may be global ($); subsequent names must be local (%)
                 if (tokenizer.peek(0).asName().isGlobal()) {
                     throw new UnexpectedTokenException(
-                            tokenizer.getLine(0),
-                            tokenizer.getCol(0),
+                            tokenizer.peek(0).getRow(),
+                            tokenizer.peek(0).getCol(),
                             "global "+NameToken.class.getSimpleName(),
                             "local  "+NameToken.class.getSimpleName()
                     );
@@ -332,7 +328,7 @@ public class ODDLReader {
 
     private StringToken readString(boolean list) throws IOException, ODDLParseException {
         if (list && !tokenizer.peek(0).isString()) {
-            throw new ListElementTypeMismatchException(tokenizer.getLine(0), tokenizer.getCol(0), tokenizer.peek(0), NameToken.class);
+            throw new ListElementTypeMismatchException(tokenizer.peek(0), NameToken.class);
         }
 
         StringToken ret = tokenizer.read().asString();
@@ -351,7 +347,7 @@ public class ODDLReader {
                 value.append(next.getValue());
             }
 
-            ret = new StringToken(text.toString(), value.toString());
+            ret = new StringToken(ret.getRow(), ret.getCol(), text.toString(), value.toString());
         }
 
         return ret;

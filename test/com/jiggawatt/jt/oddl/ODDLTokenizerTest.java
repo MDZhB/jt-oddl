@@ -103,8 +103,8 @@ public class ODDLTokenizerTest {
     //==================================================================================================================
     @Test
     public void identifyBoolLiteral() throws IOException {
-        assertSame(BoolToken.TRUE,  readToken("true"));
-        assertSame(BoolToken.FALSE, readToken("false"));
+        assertTrue (readToken("true").asBool().getValue());
+        assertFalse(readToken("false").asBool().getValue());
     }
 
     @Test
@@ -331,7 +331,7 @@ public class ODDLTokenizerTest {
     //==================================================================================================================
     @Test
     public void readNullName() throws IOException {
-        assertEquals(NameToken.NULL, readToken("null"));
+        assertTrue(readToken("null").isNullName());
     }
 
     @Test

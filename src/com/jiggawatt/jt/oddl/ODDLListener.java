@@ -44,12 +44,13 @@ public interface ODDLListener<T> {
 
     /**
      * Called by the owning {@link ODDLReader} at the end of the document.
-     * @param pos  the position in the file at which EOF was reached
+     * @param row  the line number at which EOF was reached
+     * @param col  the column number at which EOF was reached
      * @return a result that will be returned by {@link ODDLReader#read(ODDLListener)}
      * @throws ODDLFormatException if the element visited by this method is considered malformed or misplaced by this
      * listener
      */
-    T end(Position pos) throws ODDLFormatException;
+    T end(int row, int col) throws ODDLFormatException;
 
     /**
      * Called by the owning {@link ODDLReader} when it encounters a boolean literal within a list structure.

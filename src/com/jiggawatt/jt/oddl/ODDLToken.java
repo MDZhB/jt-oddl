@@ -58,6 +58,9 @@ package com.jiggawatt.jt.oddl;
  */
 public interface ODDLToken {
 
+    int getRow();
+    int getCol();
+
     enum Type {
         DELIMITER,
         IDENTIFIER,
@@ -100,6 +103,14 @@ public interface ODDLToken {
      * @return <tt>true</tt> if this token represents end of file, <tt>false</tt> otherwise
      */
     default boolean isEOF() {
+        return false;
+    }
+
+    /**
+     * Tests whether or not this token is the null name.
+     * @return <tt>true</tt> if this token is a name with a null value, <tt>false</tt> otherwise
+     */
+    default boolean isNullName() {
         return false;
     }
 

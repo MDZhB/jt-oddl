@@ -36,8 +36,8 @@ public final class DelimiterToken extends AbstractODDLToken {
     private static final String DELIMITERS = "\u0003{}[](),=";
     private final int codePoint;
 
-    private DelimiterToken(int c) {
-        super(tokenString(c));
+    private DelimiterToken(int row, int col, int c) {
+        super(row, col, tokenString(c));
         codePoint = c;
     }
 
@@ -45,13 +45,13 @@ public final class DelimiterToken extends AbstractODDLToken {
         return c==-1 || DELIMITERS.indexOf(c) >= 0;
     }
 
-    static DelimiterToken createEOF() {
-        return new DelimiterToken('\u0003');
+    static DelimiterToken createEOF(int row, int col) {
+        return new DelimiterToken(row, col, '\u0003');
     }
 
-    static DelimiterToken create(int c) {
+    static DelimiterToken create(int row, int col, int c) {
         if (DELIMITERS.indexOf(c)>=0) {
-            return new DelimiterToken(c);
+            return new DelimiterToken(row, col, c);
         }
 
         throw new IllegalArgumentException(new StringBuilder().appendCodePoint(c).toString());

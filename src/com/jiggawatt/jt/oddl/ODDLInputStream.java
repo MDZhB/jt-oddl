@@ -118,7 +118,7 @@ public final class ODDLInputStream {
     /**
      * @return the current row number (1 or greater)
      */
-    int getLine() {
+    int getRow() {
         return row;
     }
 

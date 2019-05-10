@@ -46,8 +46,8 @@ public final class DataTypeToken extends AbstractODDLToken implements PropertyVa
     private final DataType type;
     private final int bits;
 
-    private DataTypeToken(String text, int bits) {
-        super(text);
+    private DataTypeToken(int row, int col, String text, int bits) {
+        super(row, col, text);
         this.bits = bits;
         int ordinal = Integer.numberOfTrailingZeros((bits&~0x79)>>>7);
         type = DataType.get(ordinal);
@@ -75,7 +75,7 @@ public final class DataTypeToken extends AbstractODDLToken implements PropertyVa
         return Type.DATA_TYPE;
     }
 
-    static DataTypeToken create(String text) {
+    static DataTypeToken create(int row, int col, String text) {
         int bits = 0;
         switch (text) {
             // long name                   | short name(s)       | data-type token
@@ -103,6 +103,6 @@ public final class DataTypeToken extends AbstractODDLToken implements PropertyVa
             default: return null;
         }
 
-        return new DataTypeToken(text, bits);
+        return new DataTypeToken(row, col, text, bits);
     }
 }

@@ -35,12 +35,12 @@ public class UnexpectedTokenException extends ODDLParseException {
     private static final long serialVersionUID = -5172427909986993343L;
 
     @SafeVarargs
-    UnexpectedTokenException(int line, int col, ODDLToken actual, Class<? extends ODDLToken>...expect) {
-        super(createMessage(line, col, actual.toString(), createExpectMessage(expect)));
+    UnexpectedTokenException(ODDLToken actual, Class<? extends ODDLToken>...expect) {
+        super(createMessage(actual.getRow(), actual.getCol(), actual.toString(), createExpectMessage(expect)));
     }
 
-    UnexpectedTokenException(int line, int col, ODDLToken actual, ODDLToken expect) {
-        super(createMessage(line, col, "'"+actual.getText()+"'", "'"+expect.getText()+"'"));
+    UnexpectedTokenException(ODDLToken actual, ODDLToken expect) {
+        super(createMessage(actual.getRow(), actual.getCol(), "'"+actual.getText()+"'", "'"+expect.getText()+"'"));
     }
 
     UnexpectedTokenException(int line, int col, String actual, String expect) {

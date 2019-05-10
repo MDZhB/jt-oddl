@@ -40,7 +40,7 @@ public class UnexpectedCharacterException extends IOException {
         super(new StringBuilder()
             .append(location)
             .append(" at ")
-            .append(in.getLine())
+            .append(in.getRow())
             .append(", ")
             .append(in.getCol())
             .append(": ")
@@ -52,7 +52,7 @@ public class UnexpectedCharacterException extends IOException {
     UnexpectedCharacterException(ODDLInputStream in, int codePoint) {
         super(new StringBuilder()
             .append("at ")
-            .append(in.getLine())
+            .append(in.getRow())
             .append(", ")
             .append(in.getCol())
             .append(": ")

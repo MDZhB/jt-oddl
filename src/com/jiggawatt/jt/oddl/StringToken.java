@@ -36,8 +36,8 @@ public final class StringToken extends AbstractODDLToken implements PropertyValu
 
     private final String value;
 
-    StringToken(String text, String value) {
-        super(text);
+    StringToken(int row, int col, String text, String value) {
+        super(row, col, text);
         this.value = value;
     }
 

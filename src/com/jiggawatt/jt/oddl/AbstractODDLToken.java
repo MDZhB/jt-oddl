@@ -31,9 +31,22 @@ import java.util.Objects;
 public abstract class AbstractODDLToken implements ODDLToken {
 
     private final String text;
+    private final int row, col;
 
-    AbstractODDLToken(String text) {
+    AbstractODDLToken(int row, int col, String text) {
         this.text = text;
+        this.row = row;
+        this.col = col;
+    }
+
+    @Override
+    public final int getRow() {
+        return row;
+    }
+
+    @Override
+    public final int getCol() {
+        return col;
     }
 
     @Override

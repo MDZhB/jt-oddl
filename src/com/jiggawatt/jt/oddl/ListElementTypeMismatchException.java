@@ -33,8 +33,8 @@ public class ListElementTypeMismatchException extends ODDLParseException {
     private static final long serialVersionUID = 5393244921440496342L;
 
     @SafeVarargs
-    public ListElementTypeMismatchException(int line, int col, ODDLToken actual, Class<? extends ODDLToken>... expect) {
-        super(createMessage(line, col, actual.toString(), createExpectMessage(expect)));
+    public ListElementTypeMismatchException(ODDLToken actual, Class<? extends ODDLToken>... expect) {
+        super(createMessage(actual.getRow(), actual.getCol(), actual.toString(), createExpectMessage(expect)));
     }
 
     private static String createMessage(int line, int col, String actual, String expect) {
