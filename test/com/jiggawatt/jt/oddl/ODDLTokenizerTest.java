@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.function.Predicate;
 
 import static org.junit.Assert.*;
 
@@ -40,7 +41,7 @@ public class ODDLTokenizerTest {
     @Test
     public void readEofToken() throws IOException {
         final String text = "";
-        assertEquals(DelimiterToken.EOF, readToken(text));
+        assertTrue(readToken(text).isEOF());
     }
 
     // comments
@@ -48,7 +49,7 @@ public class ODDLTokenizerTest {
     @Test
     public void ignoreSingleLineComments() throws IOException {
         final String text = "// nothing here";
-        assertEquals(DelimiterToken.EOF, readToken(text));
+        assertTrue(readToken(text).isEOF());
     }
 
     @Test
@@ -58,7 +59,7 @@ public class ODDLTokenizerTest {
                 " * Line two \n " +
                 " * Line three */";
 
-        assertEquals(DelimiterToken.EOF, readToken(text));
+        assertTrue(readToken(text).isEOF());
     }
 
     // identifiers
@@ -102,8 +103,8 @@ public class ODDLTokenizerTest {
     //==================================================================================================================
     @Test
     public void identifyBoolLiteral() throws IOException {
-        assertSame(BoolToken.TRUE,  readToken("true"));
-        assertSame(BoolToken.FALSE, readToken("false"));
+        assertTrue (readToken("true").asBool().getValue());
+        assertFalse(readToken("false").asBool().getValue());
     }
 
     @Test
@@ -330,7 +331,7 @@ public class ODDLTokenizerTest {
     //==================================================================================================================
     @Test
     public void readNullName() throws IOException {
-        assertEquals(NameToken.NULL, readToken("null"));
+        assertTrue(readToken("null").isNullName());
     }
 
     @Test
@@ -368,159 +369,99 @@ public class ODDLTokenizerTest {
     // data types
     //==================================================================================================================
     @Test
-    public void readShortBool() throws IOException {
-        assertDataType("b", DataTypeToken.BOOL);
+    public void readBoolType() throws IOException {
+        assertDataType("b",    isType(DataType.BOOL));
+        assertDataType("bool", isType(DataType.BOOL));
     }
 
     @Test
-    public void readLongBool() throws IOException {
-        assertDataType("bool", DataTypeToken.BOOL);
+    public void readInt8Type() throws IOException {
+        assertDataType("i8",   isInt(8));
+        assertDataType("int8", isInt(8));
     }
 
     @Test
-    public void readShortInt8() throws IOException {
-        assertDataType("i8", DataTypeToken.INT8);
+    public void readInt16Type() throws IOException {
+        assertDataType("i16",   isInt(16));
+        assertDataType("int16", isInt(16));
     }
 
     @Test
-    public void readLongInt8() throws IOException {
-        assertDataType("int8", DataTypeToken.INT8);
+    public void readInt32Type() throws IOException {
+        assertDataType("i32",   isInt(32));
+        assertDataType("int32", isInt(32));
     }
 
     @Test
-    public void readShortInt16() throws IOException {
-        assertDataType("i16", DataTypeToken.INT16);
+    public void readInt64Type() throws IOException {
+        assertDataType("i64",   isInt(64));
+        assertDataType("int64", isInt(64));
     }
 
     @Test
-    public void readLongInt16() throws IOException {
-        assertDataType("int16", DataTypeToken.INT16);
+    public void readUInt8Type() throws IOException {
+        assertDataType("u8",            isUint(8));
+        assertDataType("unsigned_int8", isUint(8));
     }
 
     @Test
-    public void readShortInt32() throws IOException {
-        assertDataType("i32", DataTypeToken.INT32);
+    public void readUInt16Type() throws IOException {
+        assertDataType("u16",            isUint(16));
+        assertDataType("unsigned_int16", isUint(16));
     }
 
     @Test
-    public void readLongInt32() throws IOException {
-        assertDataType("int32", DataTypeToken.INT32);
+    public void readUInt32Type() throws IOException {
+        assertDataType("u32",            isUint(32));
+        assertDataType("unsigned_int32", isUint(32));
     }
 
     @Test
-    public void readShortInt64() throws IOException {
-        assertDataType("i64", DataTypeToken.INT64);
+    public void readUInt64Type() throws IOException {
+        assertDataType("u64",            isUint(64));
+        assertDataType("unsigned_int64", isUint(64));
     }
 
     @Test
-    public void readLongInt64() throws IOException {
-        assertDataType("int64", DataTypeToken.INT64);
+    public void readHalfType() throws IOException {
+        assertDataType("h",       isFloat(16));
+        assertDataType("f16",     isFloat(16));
+        assertDataType("half",    isFloat(16));
+        assertDataType("float16", isFloat(16));
     }
 
     @Test
-    public void readShortUInt8() throws IOException {
-        assertDataType("u8", DataTypeToken.UINT8);
+    public void readFloatType() throws IOException {
+        assertDataType("f",       isFloat(32));
+        assertDataType("f32",     isFloat(32));
+        assertDataType("float",   isFloat(32));
+        assertDataType("float32", isFloat(32));
     }
 
     @Test
-    public void readLongUInt8() throws IOException {
-        assertDataType("unsigned_int8", DataTypeToken.UINT8);
+    public void readDoubleType() throws IOException {
+        assertDataType("d",       isFloat(64));
+        assertDataType("f64",     isFloat(64));
+        assertDataType("double",  isFloat(64));
+        assertDataType("float64", isFloat(64));
     }
 
     @Test
-    public void readShortUInt16() throws IOException {
-        assertDataType("u16", DataTypeToken.UINT16);
+    public void readStringType() throws IOException {
+        assertDataType("s",      isType(DataType.STRING));
+        assertDataType("string", isType(DataType.STRING));
     }
 
     @Test
-    public void readLongUInt16() throws IOException {
-        assertDataType("unsigned_int16", DataTypeToken.UINT16);
-    }
-
-    @Test
-    public void readShortUInt32() throws IOException {
-        assertDataType("u32", DataTypeToken.UINT32);
-    }
-
-    @Test
-    public void readLongUInt32() throws IOException {
-        assertDataType("unsigned_int32", DataTypeToken.UINT32);
-    }
-
-    @Test
-    public void readShortUInt64() throws IOException {
-        assertDataType("u64", DataTypeToken.UINT64);
-    }
-
-    @Test
-    public void readLongUInt64() throws IOException {
-        assertDataType("unsigned_int64", DataTypeToken.UINT64);
-    }
-
-    @Test
-    public void readShortHalf() throws IOException {
-        assertDataType("h",   DataTypeToken.HALF);
-        assertDataType("f16", DataTypeToken.HALF);
-    }
-
-    @Test
-    public void readLongHalf() throws IOException {
-        assertDataType("half",    DataTypeToken.HALF);
-        assertDataType("float16", DataTypeToken.HALF);
-    }
-
-    @Test
-    public void readShortFloat() throws IOException {
-        assertDataType("f",   DataTypeToken.FLOAT);
-        assertDataType("f32", DataTypeToken.FLOAT);
-    }
-
-    @Test
-    public void readLongFloat() throws IOException {
-        assertDataType("float",   DataTypeToken.FLOAT);
-        assertDataType("float32", DataTypeToken.FLOAT);
-    }
-
-    @Test
-    public void readShortDouble() throws IOException {
-        assertDataType("d",   DataTypeToken.DOUBLE);
-        assertDataType("f64", DataTypeToken.DOUBLE);
-    }
-
-    @Test
-    public void readLongDouble() throws IOException {
-        assertDataType("double",  DataTypeToken.DOUBLE);
-        assertDataType("float64", DataTypeToken.DOUBLE);
-    }
-
-    @Test
-    public void readShortString() throws IOException {
-        assertDataType("s", DataTypeToken.STRING);
-    }
-
-    @Test
-    public void readLongString() throws IOException {
-        assertDataType("string", DataTypeToken.STRING);
-    }
-
-    @Test
-    public void readShortRef() throws IOException {
-        assertDataType("r", DataTypeToken.REF);
-    }
-
-    @Test
-    public void readLongRef() throws IOException {
-        assertDataType("ref", DataTypeToken.REF);
-    }
-
-    @Test
-    public void readShortType() throws IOException {
-        assertDataType("t", DataTypeToken.TYPE);
+    public void readRefType() throws IOException {
+        assertDataType("r",   isType(DataType.REF));
+        assertDataType("ref", isType(DataType.REF));
     }
 
     @Test
     public void readLongType() throws IOException {
-        assertDataType("type", DataTypeToken.TYPE);
+        assertDataType("t",    isType(DataType.TYPE));
+        assertDataType("type", isType(DataType.TYPE));
     }
 
     // strings
@@ -551,14 +492,14 @@ public class ODDLTokenizerTest {
     //==================================================================================================================
     @Test
     public void identifyDelimiters() throws IOException {
-        testDelimiter(DelimiterToken.LBRACE);
-        testDelimiter(DelimiterToken.RBRACE);
-        testDelimiter(DelimiterToken.LSQUARE);
-        testDelimiter(DelimiterToken.RSQUARE);
-        testDelimiter(DelimiterToken.LPAREN);
-        testDelimiter(DelimiterToken.RPAREN);
-        testDelimiter(DelimiterToken.COMMA);
-        testDelimiter(DelimiterToken.EQUALS);
+        testDelimiter('{');
+        testDelimiter('}');
+        testDelimiter('[');
+        testDelimiter(']');
+        testDelimiter('(');
+        testDelimiter(')');
+        testDelimiter(',');
+        testDelimiter('=');
     }
 
     // helpers
@@ -582,12 +523,29 @@ public class ODDLTokenizerTest {
         return getTokenizer(text).read();
     }
 
-    private static void assertDataType(String text, DataTypeToken expect) throws IOException {
-        assertSame(expect, readToken(text));
+    private static void assertDataType(String text, Predicate<DataTypeToken> getter) throws IOException {
+        ODDLToken tok = readToken(text);
+        assertTrue(tok instanceof DataTypeToken);
+        assertTrue(getter.test((DataTypeToken)tok));
     }
 
-    private static void testDelimiter(DelimiterToken token) throws IOException {
-        assertSame(token, readToken(token.getText()));
+    private static void testDelimiter(char token) throws IOException {
+        assertTrue(readToken(Character.toString(token)).isDelimiter(token));
     }
 
+    private Predicate<DataTypeToken> isInt(final int bits) {
+        return t->t.getValue()==DataType.INT && t.getTypeBits()==bits;
+    }
+
+    private Predicate<DataTypeToken> isUint(final int bits) {
+        return t->t.isTypeUnsigned() && t.getValue()==DataType.INT && t.getTypeBits()==bits;
+    }
+
+    private Predicate<DataTypeToken> isFloat(final int bits) {
+        return t->t.getValue()==DataType.FLOAT && t.getTypeBits()==bits;
+    }
+
+    private Predicate<DataTypeToken> isType(DataType type) {
+        return t->t.getValue()==type;
+    }
 }

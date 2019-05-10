@@ -33,29 +33,27 @@ package com.jiggawatt.jt.oddl;
  */
 public final class NameToken extends AbstractODDLToken {
 
-    public static final NameToken NULL = new NameToken("null", null, true);
-
     private final boolean global;
     private final String  value;
 
-    static NameToken create(String text) {
-        if (NULL.getText().equals(text)) {
-            return NULL;
+    static NameToken create(int row, int col, String text) {
+        if (text==null || text.equals("null")) {
+            return new NameToken(row, col, "null", null, true);
         }
 
         if (text.codePointAt(0)=='$') {
-            return new NameToken(text, text.substring(1), true);
+            return new NameToken(row, col, text, text.substring(1), true);
         }
 
         if (text.codePointAt(0)=='%') {
-            return new NameToken(text, text.substring(1), false);
+            return new NameToken(row, col, text, text.substring(1), false);
         }
 
         throw new IllegalArgumentException(text);
     }
 
-    private NameToken(String text, String value, boolean global) {
-        super(text);
+    private NameToken(int row, int col, String text, String value, boolean global) {
+        super(row, col, text);
         this.value = value;
         this.global = global;
     }
@@ -69,6 +67,11 @@ public final class NameToken extends AbstractODDLToken {
      */
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public boolean isNullName() {
+        return value==null;
     }
 
     @Override

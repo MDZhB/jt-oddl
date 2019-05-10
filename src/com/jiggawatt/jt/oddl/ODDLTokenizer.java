@@ -41,12 +41,7 @@ class ODDLTokenizer {
     private final ODDLInputStream in;
 
     private ODDLToken[] tokens = new ODDLToken[READAHEAD_SIZE];
-    private int[] row = new int[READAHEAD_SIZE];
-    private int[] col = new int[READAHEAD_SIZE];
     private int available;
-
-    private int lastRow = -1;
-    private int lastCol = -1;
 
     ODDLTokenizer(ODDLInputStream in) {
         this.in = in;
@@ -54,9 +49,9 @@ class ODDLTokenizer {
 
     /**
      * Retrieves a token at the given offset from the tokenizer's current position in the input stream. If the offset
-     * is greater than the number of tokens available in the stream, returns {@link DelimiterToken#EOF}.
+     * is greater than the number of tokens available in the stream, returns an EOF token.
      * @param ahead offset in tokens from the tokenizer's current position; must be 0 or greater
-     * @return the token at the given offset, or {@link DelimiterToken#EOF} if the offset is greater than the number of
+     * @return the token at the given offset, or an EOF token if the offset is greater than the number of
      * remaining tokens
      * @throws IOException when an IO exception occurs
      */
@@ -67,63 +62,22 @@ class ODDLTokenizer {
 
     /**
      * Returns the token at the current position in the input stream, and advances position to the next token. If no
-     * more tokens are available in the stream, returns {@link DelimiterToken#EOF}.
-     * @return the token at the current position in the input stream, or {@link DelimiterToken#EOF} if none is available
+     * more tokens are available in the stream, returns an EOF token.
+     * @return the token at the current position in the input stream, or an EOF token if none is available
      * @throws IOException when an IO exception occurs
      */
     ODDLToken read() throws IOException {
         // Consume from read-ahead queue first
         ODDLToken ret;
         if (available > 0) {
-            ret     = tokens[0];
-            lastRow = row[0];
-            lastCol = col[0];
-
+            ret = tokens[0];
             System.arraycopy(tokens, 1, tokens, 0, --available);
         } else {
             consumeComments();
-            lastRow = in.getLine();
-            lastCol = in.getCol();
-            ret     = readToken();
+            ret = readToken();
         }
 
         return ret;
-    }
-
-    /**
-     * Retrieves the line number for the given token in the peek queue, or the last read token.
-     * @param ahead the number of the token in the peek queue for which to retrieve a line number, or -1 for the
-     *              last-read token.
-     * @return the line number for the token at the given index
-     * @throws IOException when an IO exception occurs
-     */
-    int getLine(int ahead) throws IOException {
-        if (ahead==-1) {
-            return lastRow;
-        } else if (ahead<-1) {
-            throw new IllegalArgumentException("expected -1 or a nonnegative integer, found "+ahead);
-        } else {
-            doPeek(ahead);
-            return row[ahead];
-        }
-    }
-
-    /**
-     * Retrieves the column number for the given token in the peek queue, or the last read token.
-     * @param ahead the number of the token in the peek queue for which to retrieve a column number, or -1 for the
-     *              last-read token.
-     * @return the column number for the token at the given index
-     * @throws IOException when an IO exception occurs
-     */
-    int getCol(int ahead) throws IOException {
-        if (ahead==-1) {
-            return lastCol;
-        } else if (ahead<-1) {
-            throw new IllegalArgumentException("expected -1 or a nonnegative integer, found "+ahead);
-        } else {
-            doPeek(ahead);
-            return col[ahead];
-        }
     }
 
     /**
@@ -137,47 +91,46 @@ class ODDLTokenizer {
     <T extends ODDLToken> T read(Class<T> expectType) throws IOException, UnexpectedTokenException {
         ODDLToken ret = read();
 
-        if (ret==DelimiterToken.EOF) {
+        if (ret.isEOF()) {
             throw new UnexpectedEOFException(in);
         }
 
         if (!expectType.isAssignableFrom(ret.getClass())) {
-            throw new UnexpectedTokenException(getLine(-1), getCol(-1), ret, expectType);
+            throw new UnexpectedTokenException(ret, expectType);
         }
 
         return expectType.cast(ret);
     }
 
     /**
-     * Reads the next token, failing if it is not equal by identity to the given token.
-     * @param expectSame  the expected token
-     * @param <T>         the type of the expected token
-     * @return <tt>expectSame</tt>
+     * Reads the next token, failing if it is not a delimiter token with the given value.
+     * @param expectValue the expected token value
+     * @return a delimiter token with the expected value
      * @throws IOException when an IO exception occurs
-     * @throws UnexpectedTokenException when the read token was not identical to <tt>expectSame</tt>
+     * @throws UnexpectedTokenException when the read token was not a delimiter token with value <tt>expectSame</tt>
      */
-    <T extends ODDLToken> T read(T expectSame) throws IOException, UnexpectedTokenException {
+    DelimiterToken read(int expectValue) throws IOException, UnexpectedTokenException {
         ODDLToken ret = read();
 
-        if (ret==DelimiterToken.EOF) {
+        if (ret.isEOF()) {
             throw new UnexpectedEOFException(in);
         }
 
-        if (ret!=expectSame) {
-            throw new UnexpectedTokenException(getLine(-1), getCol(-1), ret, expectSame);
+        if (!ret.isDelimiter(expectValue)) {
+            throw new UnexpectedTokenException(ret.getRow(), ret.getCol(), ret.getText(), new StringBuilder().appendCodePoint(expectValue).toString());
         }
 
-        return expectSame;
+        return ret.asDelimiter();
     }
 
     /**
-     * Consumes the next token if it is equal by identity to the given delimiter.
-     * @param token  the token to consume, if present
-     * @return true if the tokenizer read a token identical to the given one
+     * Consumes the next token if it is a delimiter with the given value.
+     * @param codePoint  the value of the desired token
+     * @return true if the tokenizer read a token with the given value
      * @throws IOException when an IO exception occurs
      */
-    boolean consumeIfPresent(DelimiterToken token) throws IOException {
-        if (peek(0)==token) {
+    boolean consumeIfPresent(int codePoint) throws IOException {
+        if (peek(0).isDelimiter(codePoint)) {
             read();
             return true;
         } else {
@@ -188,14 +141,10 @@ class ODDLTokenizer {
     private void doPeek(int ahead) throws IOException {
         if (tokens.length <= ahead) {
             tokens = Arrays.copyOf(tokens, ahead+1);
-            row    = Arrays.copyOf(row, ahead+1);
-            col    = Arrays.copyOf(col, ahead+1);
         }
 
         for (int i = available; i<=ahead; i++) {
             consumeComments();
-            row   [i] = in.getLine();
-            col   [i] = in.getCol();
             tokens[i] = readToken();
 
             available++;
@@ -205,7 +154,7 @@ class ODDLTokenizer {
     private ODDLToken readToken() throws IOException {
         int c = in.peek(0);
         if (c==-1) {
-            return DelimiterToken.EOF;
+            return DelimiterToken.createEOF(in.getRow(), in.getCol());
         }
 
         if (isLeadingIdentifierChar(c)) {
@@ -221,13 +170,13 @@ class ODDLTokenizer {
                 return readCharLiteral(new StringBuilder());
             case '$':
             case '%':
-                return NameToken.create(readIdentifierText());
+                return NameToken.create(in.getRow(), in.getCol(), readIdentifierText());
             case '"':
                 return readStringLiteral();
         }
 
-        if (DelimiterToken.isDelimiter(c)) {
-            return DelimiterToken.create(in.read());
+        if (DelimiterToken.isDelimiterCharacter(c)) {
+            return DelimiterToken.create(in.getRow(), in.getCol(), in.read());
         }
 
         throw new UnexpectedCharacterException(in, c);
@@ -280,13 +229,13 @@ class ODDLTokenizer {
         String str = readIdentifierText();
 
         switch (str) {
-            case "null":  return NameToken.NULL;
-            case "true":  return BoolToken.TRUE;
-            case "false": return BoolToken.FALSE;
+            case "null":  return NameToken.create(in.getRow(), in.getCol(), null);
+            case "true":
+            case "false": return new BoolToken(in.getRow(), in.getCol(), str);
             default:
-                ODDLToken ret = DataTypeToken.create(str);
+                ODDLToken ret = DataTypeToken.create(in.getRow(), in.getCol(), str);
                 if (ret==null) {
-                    ret = new IdentifierToken(str);
+                    ret = new IdentifierToken(in.getRow(), in.getCol(), str);
                 }
                 return ret;
         }
@@ -342,7 +291,7 @@ class ODDLTokenizer {
         // consume trailing quote
         readSingleQuote(text);
 
-        return new IntToken(text.toString(), value.toString(), IntToken.Format.CHAR);
+        return new IntToken(in.getRow(), in.getCol(), text.toString(), value.toString(), IntToken.Format.CHAR);
     }
 
     private IntToken readBinaryLiteral(StringBuilder text) throws IOException {
@@ -367,7 +316,7 @@ class ODDLTokenizer {
         }
         requireValidNumberTerminator("binary");
 
-        return new IntToken(text.toString(), value.toString(), IntToken.Format.BIN);
+        return new IntToken(in.getRow(), in.getCol(), text.toString(), value.toString(), IntToken.Format.BIN);
     }
 
     private ODDLToken readOctalLiteral(StringBuilder text) throws IOException {
@@ -393,7 +342,7 @@ class ODDLTokenizer {
 
         requireValidNumberTerminator("octal");
 
-        return new IntToken(text.toString(), value.toString(), IntToken.Format.OCT);
+        return new IntToken(in.getRow(), in.getCol(), text.toString(), value.toString(), IntToken.Format.OCT);
     }
 
     private ODDLToken readHexLiteral(StringBuilder text) throws IOException {
@@ -419,7 +368,7 @@ class ODDLTokenizer {
 
         requireValidNumberTerminator("hex");
 
-        return new IntToken(text.toString(), value.toString(), IntToken.Format.HEX);
+        return new IntToken(in.getRow(), in.getCol(), text.toString(), value.toString(), IntToken.Format.HEX);
     }
 
     private ODDLToken readDecimalLiteral(StringBuilder text) throws IOException {
@@ -455,8 +404,8 @@ class ODDLTokenizer {
         requireValidNumberTerminator("decimal");
 
         return integer
-            ? new IntToken(text.toString(), value.toString(), IntToken.Format.DEC)
-            : new FloatToken(text.toString(), value.toString());
+            ? new IntToken(in.getRow(), in.getCol(), text.toString(), value.toString(), IntToken.Format.DEC)
+            : new FloatToken(in.getRow(), in.getCol(), text.toString(), value.toString());
     }
 
     private void readDigits(StringBuilder text, StringBuilder value) throws IOException {
@@ -471,7 +420,7 @@ class ODDLTokenizer {
 
     private void requireValidNumberTerminator(String type) throws IOException {
         int c = in.peek(0);
-        if (!isWhitespace(c) && !DelimiterToken.isDelimiter(c)) {
+        if (!isWhitespace(c) && !DelimiterToken.isDelimiterCharacter(c)) {
             throw new UnexpectedCharacterException(in, "in "+type+" literal", c);
         }
     }
@@ -499,7 +448,7 @@ class ODDLTokenizer {
 
         readDoubleQuote(text);
 
-        return new StringToken(text.toString(), value.toString());
+        return new StringToken(in.getRow(), in.getCol(), text.toString(), value.toString());
     }
 
     private void readStringEscape(StringBuilder text, StringBuilder value) throws IOException {

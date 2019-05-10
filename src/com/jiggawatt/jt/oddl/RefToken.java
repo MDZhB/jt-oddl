@@ -41,13 +41,13 @@ public final class RefToken extends AbstractODDLToken implements PropertyValueTo
 
     private final List<NameToken> names;
 
-    public RefToken() {
-        super("null");
+    public RefToken(int row, int col) {
+        super(row, col, "null");
         this.names = Collections.emptyList();
     }
 
     public RefToken(List<NameToken> names) {
-        super(namesToText(names));
+        super(names.get(0).getRow(), names.get(0).getCol(), namesToText(names));
         this.names = Collections.unmodifiableList(new ArrayList<>(names));
     }
 
@@ -65,6 +65,10 @@ public final class RefToken extends AbstractODDLToken implements PropertyValueTo
         return names;
     }
 
+    public boolean isNullName() {
+        return names.isEmpty();
+    }
+
     @Override
     public Object getValueAsObject() {
         if (names.isEmpty()) {
@@ -79,6 +83,10 @@ public final class RefToken extends AbstractODDLToken implements PropertyValueTo
     }
 
     private static String namesToText(List<NameToken> names) {
+        if (names.isEmpty()) {
+            return "null";
+        }
+
         StringBuilder sb = new StringBuilder();
         for (NameToken k : names) {
             sb.append(k.getText());

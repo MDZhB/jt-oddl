@@ -33,18 +33,18 @@ package com.jiggawatt.jt.oddl;
  */
 public final class BoolToken extends AbstractODDLToken implements PropertyValueToken {
 
-    public static final BoolToken TRUE  = new BoolToken("true");
-    public static final BoolToken FALSE = new BoolToken("false");
+    private final boolean value;
 
-    private BoolToken(String text) {
-        super(text);
+    BoolToken(int row, int col, String text) {
+        super(row, col, text);
+        value = Boolean.valueOf(text);
     }
 
     /**
      * @return the boolean value represented by this token
      */
     public boolean getValue() {
-        return this == TRUE;
+        return value;
     }
 
     @Override

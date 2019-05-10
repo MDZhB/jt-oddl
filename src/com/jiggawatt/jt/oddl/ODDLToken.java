@@ -58,6 +58,9 @@ package com.jiggawatt.jt.oddl;
  */
 public interface ODDLToken {
 
+    int getRow();
+    int getCol();
+
     enum Type {
         DELIMITER,
         IDENTIFIER,
@@ -83,6 +86,31 @@ public interface ODDLToken {
      * @return <tt>true</tt> when this token represents a delimiter, <tt>false</tt> otherwise
      */
     default boolean isDelimiter() {
+        return false;
+    }
+
+    /**
+     * Tests whether or not the this token represents the given delimiter character.
+     * @param c  a delimiter code point
+     * @return <tt>true</tt> when this token represents a delimiter with the given value, <tt>false</tt> otherwise
+     */
+    default boolean isDelimiter(int c) {
+        return false;
+    }
+
+    /**
+     * Tests whether or not this token is the EOF delimiter.
+     * @return <tt>true</tt> if this token represents end of file, <tt>false</tt> otherwise
+     */
+    default boolean isEOF() {
+        return false;
+    }
+
+    /**
+     * Tests whether or not this token is the null name.
+     * @return <tt>true</tt> if this token is a name with a null value, <tt>false</tt> otherwise
+     */
+    default boolean isNullName() {
         return false;
     }
 

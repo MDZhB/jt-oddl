@@ -37,10 +37,10 @@ public class UnexpectedEOFException extends IOException {
     private static final long serialVersionUID = 6784560380601765752L;
 
     UnexpectedEOFException(ODDLInputStream in, String location) {
-        super("in "+location+" at "+in.getLine()+", "+in.getCol());
+        super("in "+location+" at "+in.getRow()+", "+in.getCol());
     }
 
     UnexpectedEOFException(ODDLInputStream in) {
-        super("at "+in.getLine()+", "+in.getCol());
+        super("at "+in.getRow()+", "+in.getCol());
     }
 }

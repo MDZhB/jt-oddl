@@ -34,82 +34,86 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
-
 public class ODDLReaderTest {
 
     // custom structures
     //==================================================================================================================
     @Test
-    public void parseEmptyStructure() throws IOException, ODDLParseException {
+    public void parseEmptyStructure() throws IOException, ODDLParseException, ODDLFormatException {
         Structure expect = struct("Empty");
         String text = "Empty {}";
         assertEquals(expect, parseSingle(text));
     }
 
     @Test
-    public void parseCustomStructureName() throws IOException, ODDLParseException {
+    public void parseCustomStructureName() throws IOException, ODDLParseException, ODDLFormatException {
         assertEquals("$foo", parseSingle("Empty $foo {}").name);
     }
 
     // list structures
     //==================================================================================================================
     @Test
-    public void parseEmptyListStructure() throws IOException, ODDLParseException {
+    public void parseEmptyListStructure() throws IOException, ODDLParseException, ODDLFormatException {
         Structure expect = list("float", null);
         String text = "float {}";
         assertEquals(expect, parseSingle(text));
     }
 
     @Test
-    public void parseListStructure() throws IOException, ODDLParseException {
+    public void parseListStructure() throws IOException, ODDLParseException, ODDLFormatException {
         Structure expect = list("float", null, 1.0, 2.0, 3.0, 4.0);
         String text = "float {1.0, 2.0, 3.0, 4.0}";
         assertEquals(expect, parseSingle(text));
     }
 
     @Test
-    public void parseListStructureName() throws IOException, ODDLParseException {
+    public void parseListStructureName() throws IOException, ODDLParseException, ODDLFormatException {
         assertEquals("$foo", parseSingle("float $foo {1.0, 2.0, 3.0}").name);
     }
 
     @Test
-    public void parseArrayListStructure() throws IOException, ODDLParseException {
+    public void parseArrayListStructure() throws IOException, ODDLParseException, ODDLFormatException {
         String text = "float [3] {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}}";
         assertEquals(List.of(List.of(1.0, 2.0, 3.0), List.of(4.0, 5.0, 6.0)), parseSingle(text).data);
     }
 
     @Test
-    public void disambiguateListElementType() throws IOException, ODDLParseException {
+    public void disambiguateListElementType() throws IOException, ODDLParseException, ODDLFormatException {
         // interpret int token as float for list of type float
         String text = "float {1.0, 2.0, 3}";
         assertEquals(List.of(1.0, 2.0, 3.0), parseSingle(text).data);
     }
 
     @Test
-    public void parseConcatStringListElements() throws IOException, ODDLParseException {
+    public void parseConcatStringListElements() throws IOException, ODDLParseException, ODDLFormatException {
         String text = "string {\"foo\" \"bar\", \"baz\"}";
         assertEquals(List.of("foobar", "baz"), parseSingle(text).data);
     }
 
     @Test(expected=ListElementTypeMismatchException.class)
-    public void failOnElementTypeMismatch() throws IOException, ODDLParseException {
+    public void failOnElementTypeMismatch() throws IOException, ODDLParseException, ODDLFormatException {
         parseSingle("float {1.0, 2.0, true}");
     }
 
     @Test(expected=IllegalSubarraySizeException.class)
-    public void enforceArrayListSize() throws IOException, ODDLParseException {
+    public void enforceArrayListSize() throws IOException, ODDLParseException, ODDLFormatException {
         parseSingle("float [3] {{1.0, 2.0, 3.0}, {4.0, 5.0}}");
     }
 
     @Test
-    public void parseArrayListStructureName() throws IOException, ODDLParseException {
+    public void readsEmptyArrayList() throws ODDLParseException, ODDLFormatException, IOException {
+        assertEquals(List.of(), parseSingle("float[3]{}").data);
+    }
+
+    @Test
+    public void parseArrayListStructureName() throws IOException, ODDLParseException, ODDLFormatException {
         assertEquals("$foo", parseSingle("float [3] $foo {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}}").name);
     }
 
     // structure properties
     //==================================================================================================================
     @Test
-    public void parseStructureIntProperty() throws IOException, ODDLParseException {
+    public void parseStructureIntProperty() throws IOException, ODDLParseException, ODDLFormatException {
         assertPropertiesEqual(
             Map.of("prop", 5L),
             "Props (prop=5) {}"
@@ -117,7 +121,7 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseStructureFloatProperty() throws IOException, ODDLParseException {
+    public void parseStructureFloatProperty() throws IOException, ODDLParseException, ODDLFormatException {
         assertPropertiesEqual(
             Map.of("prop", 5.0),
             "Props (prop=5.0) {}"
@@ -125,7 +129,7 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseStructureBoolProperty() throws IOException, ODDLParseException {
+    public void parseStructureBoolProperty() throws IOException, ODDLParseException, ODDLFormatException {
         assertPropertiesEqual(
             Map.of("prop", false),
             "Props (prop=false) {}"
@@ -133,7 +137,7 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseStructureStringProperty() throws IOException, ODDLParseException {
+    public void parseStructureStringProperty() throws IOException, ODDLParseException, ODDLFormatException {
         assertPropertiesEqual(
             Map.of("prop", "foo"),
             "Props (prop=\"foo\") {}"
@@ -141,7 +145,7 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseStructureStringConcatProperty() throws IOException, ODDLParseException {
+    public void parseStructureStringConcatProperty() throws IOException, ODDLParseException, ODDLFormatException {
         assertPropertiesEqual(
             Map.of("prop", "foobar"),
             "Props (prop=\"foo\" \"bar\") {}"
@@ -149,7 +153,7 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseStructureRefProperty() throws IOException, ODDLParseException {
+    public void parseStructureRefProperty() throws IOException, ODDLParseException, ODDLFormatException {
         assertPropertiesEqual(
             Map.of("prop", List.of("$foo","%bar", "%baz")),
             "Props (prop=$foo%bar%baz) {}"
@@ -157,19 +161,19 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseStructureNullRefProperty() throws IOException, ODDLParseException {
+    public void parseStructureNullRefProperty() throws IOException, ODDLParseException, ODDLFormatException {
         Map<String, Object> expect = new HashMap<>();
         expect.put("prop", null);
         assertPropertiesEqual(expect, "Props (prop=null) {}");
     }
 
     @Test(expected=UnexpectedTokenException.class)
-    public void structureRefPropertyRequiresLocalNames() throws IOException, ODDLParseException {
+    public void structureRefPropertyRequiresLocalNames() throws IOException, ODDLParseException, ODDLFormatException {
         parseSingle("Props (prop=$foo$bar$baz");
     }
 
     @Test
-    public void parsePropertyList() throws IOException, ODDLParseException {
+    public void parsePropertyList() throws IOException, ODDLParseException, ODDLFormatException {
         assertPropertiesEqual(
             Map.of("foo", 1L, "bar", 2.0, "baz", "string", "qux", List.of("$name"), "quux", true),
             "Props (foo=1, bar=2.0, baz=\"string\", qux=$name, quux=true) {}"
@@ -177,7 +181,7 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseEmptyPropertyList() throws IOException, ODDLParseException {
+    public void parseEmptyPropertyList() throws IOException, ODDLParseException, ODDLFormatException {
         assertPropertiesEqual(
             Map.of(),
             "Props () {}"
@@ -187,7 +191,7 @@ public class ODDLReaderTest {
     // child structures
     //==================================================================================================================
     @Test
-    public void parseCustomChildStructure() throws IOException, ODDLParseException {
+    public void parseCustomChildStructure() throws IOException, ODDLParseException, ODDLFormatException {
         List<Structure> expect = List.of(
             struct("Child")
             .property("key", "value")
@@ -197,7 +201,7 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseMultipleCustomChildStructures() throws IOException, ODDLParseException {
+    public void parseMultipleCustomChildStructures() throws IOException, ODDLParseException, ODDLFormatException {
         List<Structure> expect = List.of(
             struct("Child").property("index", 0L),
             struct("Child").property("index", 1L),
@@ -208,7 +212,7 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseListChildStructure() throws IOException, ODDLParseException {
+    public void parseListChildStructure() throws IOException, ODDLParseException, ODDLFormatException {
         List<Structure> expect = List.of(
                 list("float", null, 0.0, 1.0, 2.0)
         );
@@ -217,7 +221,7 @@ public class ODDLReaderTest {
     }
 
     @Test
-    public void parseMultipleListChildStructures() throws IOException, ODDLParseException {
+    public void parseMultipleListChildStructures() throws IOException, ODDLParseException, ODDLFormatException {
         List<Structure> expect = List.of(
             list("float", null, 0.0, 1.0, 2.0),
             list("int32", null, 3L,  4L,  5L ),
@@ -228,25 +232,25 @@ public class ODDLReaderTest {
     }
 
     @Test(expected=ListElementTypeMismatchException.class)
-    public void forbidChildStructureInList() throws IOException, ODDLParseException {
+    public void forbidChildStructureInList() throws IOException, ODDLParseException, ODDLFormatException {
         parseSingle("float { Child {}}");
     }
 
     // test helpers
     //==================================================================================================================
-    private static List<Structure> parse(String text) throws IOException, ODDLParseException {
+    private static List<Structure> parse(String text) throws IOException, ODDLParseException, ODDLFormatException {
         ODDLReader reader = new ODDLReader(new ByteArrayInputStream(text.getBytes()));
         TestListener listener = new TestListener();
         return reader.read(listener);
     }
 
-    private static Structure parseSingle(String text) throws IOException, ODDLParseException {
+    private static Structure parseSingle(String text) throws IOException, ODDLParseException, ODDLFormatException {
         List<Structure> ret = parse(text);
         assertEquals(1, ret.size());
         return ret.get(0);
     }
 
-    private static void assertPropertiesEqual(Map<String, Object> expect, String text) throws IOException, ODDLParseException {
+    private static void assertPropertiesEqual(Map<String, Object> expect, String text) throws IOException, ODDLParseException, ODDLFormatException {
         assertEquals(expect, parseSingle(text).properties);
     }
 
@@ -261,7 +265,7 @@ public class ODDLReaderTest {
         }
 
         @Override
-        public List<Structure> end() {
+        public List<Structure> end(int row, int col) {
             return structures;
         }
 
@@ -332,7 +336,7 @@ public class ODDLReaderTest {
         public void beginCustomStructure(IdentifierToken identifier, NameToken name, PropertyMap properties) {
             Structure struct = new Structure(identifier.getText(), null, name==null?null:name.getText());
 
-            for (Map.Entry<String, PropertyValueToken> e : properties) {
+            for (PropertyMap.Entry e : properties) {
                 struct.property(e.getKey(), e.getValue().getValueAsObject());
             }
 

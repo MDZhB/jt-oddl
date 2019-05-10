@@ -61,8 +61,8 @@ public final class IntToken extends AbstractODDLToken implements PropertyValueTo
     private final long   value;
     private final Format format;
 
-    IntToken(String text, String value, Format format) {
-        super(text);
+    IntToken(int row, int col, String text, String value, Format format) {
+        super(row, col, text);
         this.format = format;
         this.value  = format==Format.CHAR ? parseCharLiteral(value) : Long.parseLong(value, format.getRadix());
     }

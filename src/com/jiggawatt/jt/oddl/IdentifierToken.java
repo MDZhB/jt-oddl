@@ -33,8 +33,8 @@ package com.jiggawatt.jt.oddl;
  */
 public final class IdentifierToken extends AbstractODDLToken {
 
-    IdentifierToken(String text) {
-        super(text);
+    IdentifierToken(int row, int col, String text) {
+        super(row, col, text);
     }
 
     @Override

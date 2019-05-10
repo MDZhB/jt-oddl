@@ -37,12 +37,12 @@ public final class FloatToken extends AbstractODDLToken implements PropertyValue
 
     private final double value;
 
-    FloatToken(String text, String value) {
-        this(text, Double.valueOf(value));
+    FloatToken(int row, int col, String text, String value) {
+        this(row, col, text, Double.valueOf(value));
     }
 
-    FloatToken(String text, double value) {
-        super(text);
+    FloatToken(int row, int col, String text, double value) {
+        super(row, col, text);
         this.value = value;
     }
 
