@@ -41,7 +41,7 @@ public class ODDLTokenizerTest {
     @Test
     public void readEofToken() throws IOException {
         final String text = "";
-        assertEquals(DelimiterToken.EOF, readToken(text));
+        assertTrue(readToken(text).isEOF());
     }
 
     // comments
@@ -49,7 +49,7 @@ public class ODDLTokenizerTest {
     @Test
     public void ignoreSingleLineComments() throws IOException {
         final String text = "// nothing here";
-        assertEquals(DelimiterToken.EOF, readToken(text));
+        assertTrue(readToken(text).isEOF());
     }
 
     @Test
@@ -59,7 +59,7 @@ public class ODDLTokenizerTest {
                 " * Line two \n " +
                 " * Line three */";
 
-        assertEquals(DelimiterToken.EOF, readToken(text));
+        assertTrue(readToken(text).isEOF());
     }
 
     // identifiers
@@ -492,14 +492,14 @@ public class ODDLTokenizerTest {
     //==================================================================================================================
     @Test
     public void identifyDelimiters() throws IOException {
-        testDelimiter(DelimiterToken.LBRACE);
-        testDelimiter(DelimiterToken.RBRACE);
-        testDelimiter(DelimiterToken.LSQUARE);
-        testDelimiter(DelimiterToken.RSQUARE);
-        testDelimiter(DelimiterToken.LPAREN);
-        testDelimiter(DelimiterToken.RPAREN);
-        testDelimiter(DelimiterToken.COMMA);
-        testDelimiter(DelimiterToken.EQUALS);
+        testDelimiter('{');
+        testDelimiter('}');
+        testDelimiter('[');
+        testDelimiter(']');
+        testDelimiter('(');
+        testDelimiter(')');
+        testDelimiter(',');
+        testDelimiter('=');
     }
 
     // helpers
@@ -529,8 +529,8 @@ public class ODDLTokenizerTest {
         assertTrue(getter.test((DataTypeToken)tok));
     }
 
-    private static void testDelimiter(DelimiterToken token) throws IOException {
-        assertSame(token, readToken(token.getText()));
+    private static void testDelimiter(char token) throws IOException {
+        assertTrue(readToken(Character.toString(token)).isDelimiter(token));
     }
 
     private Predicate<DataTypeToken> isInt(final int bits) {

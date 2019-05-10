@@ -33,46 +33,32 @@ package com.jiggawatt.jt.oddl;
  */
 public final class DelimiterToken extends AbstractODDLToken {
 
-    public static final DelimiterToken EOF     = new DelimiterToken(null);
+    private static final String DELIMITERS = "\u0003{}[](),=";
+    private final int codePoint;
 
-    public static final DelimiterToken LBRACE  = new DelimiterToken("{");
-    public static final DelimiterToken RBRACE  = new DelimiterToken("}");
-    public static final DelimiterToken LSQUARE = new DelimiterToken("[");
-    public static final DelimiterToken RSQUARE = new DelimiterToken("]");
-    public static final DelimiterToken LPAREN  = new DelimiterToken("(");
-    public static final DelimiterToken RPAREN  = new DelimiterToken(")");
-    public static final DelimiterToken COMMA   = new DelimiterToken(",");
-    public static final DelimiterToken EQUALS  = new DelimiterToken("=");
-
-    private DelimiterToken(String text) {
-        super(text);
+    private DelimiterToken(int c) {
+        super(tokenString(c));
+        codePoint = c;
     }
 
-    static boolean isDelimiter(int c) {
-        return c==-1 || "{}[](),=".indexOf(c) >= 0;
+    static boolean isDelimiterCharacter(int c) {
+        return c==-1 || DELIMITERS.indexOf(c) >= 0;
     }
 
-    public static ODDLToken create(int c) {
-        switch (c) {
-            case '{':
-                return DelimiterToken.LBRACE;
-            case '}':
-                return DelimiterToken.RBRACE;
-            case '[':
-                return DelimiterToken.LSQUARE;
-            case ']':
-                return DelimiterToken.RSQUARE;
-            case '(':
-                return DelimiterToken.LPAREN;
-            case ')':
-                return DelimiterToken.RPAREN;
-            case ',':
-                return DelimiterToken.COMMA;
-            case '=':
-                return DelimiterToken.EQUALS;
+    static DelimiterToken createEOF() {
+        return new DelimiterToken('\u0003');
+    }
+
+    static DelimiterToken create(int c) {
+        if (DELIMITERS.indexOf(c)>=0) {
+            return new DelimiterToken(c);
         }
 
         throw new IllegalArgumentException(new StringBuilder().appendCodePoint(c).toString());
+    }
+
+    public int getCodePoint() {
+        return codePoint;
     }
 
     @Override
@@ -86,17 +72,26 @@ public final class DelimiterToken extends AbstractODDLToken {
     }
 
     @Override
+    public boolean isDelimiter(int c) {
+        return codePoint == c;
+    }
+
+    @Override
+    public boolean isEOF() {
+        return codePoint == '\u0003';
+    }
+
+    @Override
     public DelimiterToken asDelimiter() {
         return this;
     }
 
-    @Override
-    public boolean equals(Object other) {
-        return this==other;
-    }
-
-    @Override
-    public int hashCode() {
-        return System.identityHashCode(this);
+    private static String tokenString(int c) {
+        if (c=='\u0003') {
+            return null;
+        } else {
+            int idx = DELIMITERS.indexOf(c);
+            return DELIMITERS.substring(idx, idx + 1);
+        }
     }
 }

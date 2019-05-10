@@ -87,6 +87,23 @@ public interface ODDLToken {
     }
 
     /**
+     * Tests whether or not the this token represents the given delimiter character.
+     * @param c  a delimiter code point
+     * @return <tt>true</tt> when this token represents a delimiter with the given value, <tt>false</tt> otherwise
+     */
+    default boolean isDelimiter(int c) {
+        return false;
+    }
+
+    /**
+     * Tests whether or not this token is the EOF delimiter.
+     * @return <tt>true</tt> if this token represents end of file, <tt>false</tt> otherwise
+     */
+    default boolean isEOF() {
+        return false;
+    }
+
+    /**
      * @return this token, if it represents a delimiter
      */
     default DelimiterToken asDelimiter() {
