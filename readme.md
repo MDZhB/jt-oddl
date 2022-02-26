@@ -74,10 +74,10 @@ If handling a large number of token types, it may be wiser to use a switch state
 ```java
 switch (token.getType()) {
     case BOOL:
-        BoolToken bt = token.asBool().getValue();
+        boolean bt = token.asBool().getValue();
         break;
     case FLOAT:
-        FloatToken ft = token.asFloat().getValue();
+        float ft = token.asFloat().getValue();
         break;
     // etc.
 }
